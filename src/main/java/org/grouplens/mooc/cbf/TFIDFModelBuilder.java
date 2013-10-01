@@ -87,7 +87,6 @@ public class TFIDFModelBuilder implements Provider<TFIDFModel> {
                     work.set(tagID, 1D);
                 } else  {
                     double tagCount = work.get(tagID);
-                    //  System.out.println("Item id " + item + " tag id " + tagID + " #tags" + tagCount);
                     work.set(tagID, tagCount+1D);
                 }
             }
@@ -97,7 +96,6 @@ public class TFIDFModelBuilder implements Provider<TFIDFModel> {
             // work vector for this Movie(Item) contains all possible TagID's for this movie and their count
             for (VectorEntry movieTag : work.fast()) {
                 Long tagID = movieTag.getKey();
-                //  System.out.println("Tag id " + tagID + " #count " + workEntry.getValue());
                 if (docFreq.containsKey(tagID)) {
                     double tagCount = docFreq.get(tagID);
                     docFreq.set(tagID, tagCount+1D);
@@ -122,13 +120,11 @@ public class TFIDFModelBuilder implements Provider<TFIDFModel> {
             //Vector of movieTag Frequency across movies
             double idfValueForTag = Math.log(numMovies / numMoviesWithTag);
             docFreq.set(e.getKey(), idfValueForTag);
-
         }
 
         //System.out.println("IDF vector ");
         //System.out.println(docFreq.toString());
-        //System.out.println("");
-        System.out.println(itemVectors.get(new Long(11)).toString());
+        //System.out.println(itemVectors.get(new Long(11)).toString());
 
         // Now docFreq is a log-IDF vector.
         // So we can use it to apply IDF to each item vector to put it in the final model.
@@ -148,8 +144,7 @@ public class TFIDFModelBuilder implements Provider<TFIDFModel> {
             modelData.put(movieEntry.getKey(), movieVector.freeze());
         }
 
-
-        System.out.println(modelData.get(new Long(11)).toString());
+       // System.out.println(modelData.get(new Long(11)).toString());
 
         // we technically don't need the IDF vector anymore, so long as we have no new tags
         return new TFIDFModel(tagIds, modelData);
