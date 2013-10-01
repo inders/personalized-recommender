@@ -47,8 +47,8 @@ public class TFIDFItemScorer extends AbstractItemScorer {
     @Override
     public void score(long user, @Nonnull MutableSparseVector output) {
         // Get the user's profile, which is a vector with their 'like' for each tag
-        SparseVector userVector = makeUserVector(user);
-        userVector.norm();
+        // SparseVector userVector = makeUserVector(user);
+        SparseVector userVector = makeWeightedUserVector(user);
 
         // Loop over each item requested and score it.
         // The *domain* of the output vector is the items that we are to score.
@@ -58,17 +58,64 @@ public class TFIDFItemScorer extends AbstractItemScorer {
             SparseVector iv = model.getItemVector(e.getKey());
             // TODO Compute the cosine of this item and the user's profile, store it in the output vector
             double cosine = cosineVectorSimilarity.similarity(userVector, iv);
-           // double cosine = userVector.dot(iv) / (userVector.norm() * iv.norm());
+            // double cosine = userVector.dot(iv) / (userVector.norm() * iv.norm());
             output.set(e.getKey(), cosine);
 
             // TODO And remove this exception to say you've implemented it
-           // throw new UnsupportedOperationException("stub implementation");
+            // throw new UnsupportedOperationException("stub implementation");
         }
 
 
        /* for (VectorEntry entry : output.fast()) {
             System.out.print(entry.getKey() + ":" + entry.getValue() + ",");
         }*/
+    }
+
+
+    /**
+     * Using formula
+     *     u⃗ =∑i∈(u)(rui−μu)i⃗
+     *
+     * u⃗  ->  User Vector
+     * i⃗  ->  Item Vector
+     * I(u) -> Set of items rated by user
+     * ut, It -> User u's or item i's score for tag
+     * rui -> Ratings of user U for Item i
+     * μu  -> Average of user's ratings
+     *
+     * @param user
+     * @return
+     */
+    private SparseVector makeWeightedUserVector(long user) {
+        List<Rating> userRatings = dao.getEventsForUser(user, Rating.class);
+
+        MutableSparseVector profile = model.newTagVector();
+        profile.fill(0);
+
+        double averageRating = 0;
+        int numRatings = 0;
+        //calcuate average of user ratings
+        for (Rating rating : userRatings) {
+            averageRating += rating.getPreference().getValue();
+            numRatings++;
+        }
+        averageRating = averageRating/numRatings;
+
+        //for each Item User has rated
+        for (Rating r: userRatings) {
+            if (r.getPreference() != null) {
+                double rating = r.getPreference().getValue();
+                if (rating > 0) {
+                    double netWeight = (rating - averageRating);
+                    SparseVector itemVector =  model.getItemVector(r.getPreference().getItemId());
+                    MutableSparseVector mutableItemSparseVector = itemVector.mutableCopy();
+                    mutableItemSparseVector.multiply(netWeight);
+                    profile.add(mutableItemSparseVector);
+                }
+            }
+        }
+        return profile.freeze();
+
     }
 
     private SparseVector makeUserVector(long user) {
@@ -94,7 +141,7 @@ public class TFIDFItemScorer extends AbstractItemScorer {
                 // The user likes this item!
                 // TODO Get the item's vector and add it to the user's profile
                 //get vector for item which user has liked
-               profile.add(model.getItemVector(p.getItemId()));
+                profile.add(model.getItemVector(p.getItemId()));
             }
         }
 
