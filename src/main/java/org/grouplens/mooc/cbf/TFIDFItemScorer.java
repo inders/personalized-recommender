@@ -66,10 +66,7 @@ public class TFIDFItemScorer extends AbstractItemScorer {
         }
 
 
-       /* for (VectorEntry entry : output.fast()) {
-            System.out.print(entry.getKey() + ":" + entry.getValue() + ",");
-        }*/
-    }
+  }
 
 
     /**
