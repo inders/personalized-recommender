@@ -1,7 +1,7 @@
-personalized-recommender
-========================
+Building Personalized Recommenders based on User Interests
+===========================================================
 
-Building a personalized recommender based on users long term interests
+Building a personalized recommender based on users long term interests/profile using LensKit.
 
 ##Data
 
